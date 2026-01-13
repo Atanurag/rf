@@ -40,7 +40,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'students',
     'api',
-    'employees'
+    'employees',
+    'blogs',
+    'django_filters',
+
 ]
 # anuragt9510@gmail.com pass 12345
 MIDDLEWARE = [
@@ -124,3 +127,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# global pagination configuration
+REST_FRAMEWORK = {
+    #'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination', #total page number pagination
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination', #limit-offset pagination
+    'PAGE_SIZE':2,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}

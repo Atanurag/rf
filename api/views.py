@@ -6,7 +6,13 @@ from .serializers import StudentSerializer, EmployeeSerializer
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from django.http import Http404
-from rest_framework import generics,mixins
+from django.shortcuts import get_object_or_404 
+from rest_framework import generics,mixins, viewsets
+from blogs.models import Blog, Comment
+from blogs.serializers import BlogSerializer, CommentSerializer
+from .pagination import CustomPagination
+from employees.filters import EmployeeFilter
+from rest_framework.filters import SearchFilter
 # Create your views here.
 @api_view(['GET', 'POST'])
 def students(request):
@@ -87,26 +93,104 @@ def studentDetailView(request,pk):
 #         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+#mixins
+# class Employees(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
 
-class Employees(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+#     def get(self, request):
+#         return self.list(request)
+    
+#     def post(self, request):
+#         return self.create(request)
+#mixins
+# class EmployeeDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
+
+#     def get(self, request, pk):
+#         return self.retrieve(request, pk)
+    
+#     def put(self, request, pk):
+#         return self.update(request, pk)
+    
+#     def delete(self, request, pk):
+#         return self.destroy(request, pk)
+
+
+#generics
+
+# class Employees(generics.ListAPIView, generics.CreateAPIView):
+
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
+
+
+
+# class EmployeeDetail(generics.RetrieveAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
+#     queryset = Employee.objects.all()
+#     serializer_class = EmployeeSerializer
+#     lookup_field = 'pk'
+
+
+#viewsets
+# class EmployeeViewset(viewsets.ViewSet):
+
+#     def list(self,request):
+#         queryset = Employee.objects.all()
+#         serializer = EmployeeSerializer(queryset , many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+#     def create(self,request):
+#         serializer = EmployeeSerializer(data=request.data)
+#         if(serializer.is_valid()):
+#             serializer.save()
+#             return Response(serializer.data,status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+#     def retrieve(self, request, pk=None):
+#         employee = get_object_or_404(Employee,pk = pk)
+#         serializer = EmployeeSerializer(employee)
+#         return Response(serializer.data,status=status.HTTP_200_OK)  
+
+#     def update(self, request,pk):
+#         employee = self.get_object(pk)
+#         serializer = EmployeeSerializer(employee,data=request.data)
+#         if(serializer.is_valid()):
+#             serializer.save()
+#             return Response(serializer.data,status=status.HTTP_200_OK)
+#         return Response(serializer.errors(),status=status.HTTP_400_BAD_REQUEST)
+
+
+# viewsets with ModelViewSet
+class EmployeeViewset(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    pagination_class = CustomPagination
+    #filterset_fields = ['designation']
+    filterset_class = EmployeeFilter # custom filter^
 
-    def get(self, request):
-        return self.list(request)
-    
-    def post(self, request):
-        return self.create(request)
+# Blog and Comment APIs
 
-class EmployeeDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
+class BlogsView(generics.ListCreateAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+    filter_backend = [SearchFilter] #search filter
+    search_fields = ['blog_body', 'blog_title'] #search filter
 
-    def get(self, request, pk):
-        return self.retrieve(request, pk)
-    
-    def put(self, request, pk):
-        return self.update(request, pk)
-    
-    def delete(self, request, pk):
-        return self.destroy(request, pk)
+class CommentsView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+    lookup_field = 'pk'
+
+
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    lookup_field = 'pk'
